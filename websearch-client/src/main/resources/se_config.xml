@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<engineConfiguration>
+	<shareBrowser>true</shareBrowser>
+	<browserVersion>FIREFOX_17</browserVersion>
+	<javaScriptEnabled>false</javaScriptEnabled>
+	<sources>
+		<source>
+			<sourceName>yandex_market</sourceName>
+			<homePageURI>http://market.yandex.ru</homePageURI>
+			<sourceHandlerClass>org.yflyud.projects.websearch.client.handlers.YandexMarketHandler</sourceHandlerClass>
+		</source>
+	</sources>
+</engineConfiguration>
