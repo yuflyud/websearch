@@ -5,6 +5,7 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.yflyud.projects.websearch.client.MessageUtil;
 import org.yflyud.projects.websearch.client.PropertyKeys;
@@ -33,7 +34,7 @@ public class WebStoreDocRowProcessor implements IExcelRowProcessor {
         this.engine = engine;
         useFullSearch = Boolean.valueOf(properties
                 .getProperty(PropertyKeys.ROW_PROCESSOR_USE_FULL_SEARCH));
-        requestDelay= Integer.valueOf(properties
+        requestDelay = Integer.valueOf(properties
                 .getProperty(PropertyKeys.ROW_PROCESSOR_REQUEST_DELAY));
         initArticleColumn = Boolean.valueOf(properties
                 .getProperty(PropertyKeys.ROW_PROCESSOR_INIT_ARTICLE_COLUMN));
@@ -54,15 +55,17 @@ public class WebStoreDocRowProcessor implements IExcelRowProcessor {
     // @Override
     public void processRow(Row row) {
         String itemNameFull = combineCellValues(row, vendorColumnIndex, modelColumnIndex);
-        String itemNameShort = combineCellValues(row, vendorColumnIndex, nameColumnIndex);
+
+        if (initArticleColumn) {
+            initArticleColumn(row);
+        }
+
+        String itemNameShort = WorkbookUtil.getCellValueAsString(row.getCell(articleColumnIndex));
         if (itemNameFull.length() == 0 && itemNameShort.length() == 0) {
             LOGGER.debug(MessageUtil.formatMessage("processing.emptyname", row.getRowNum()));
             return;
         }
-        if (initArticleColumn) {
-            Cell cell = row.createCell(articleColumnIndex);
-            cell.setCellValue(itemNameShort);
-        }
+
         if (yandexMarketEnabled) {
             Result result = null;
             result = getResult(itemNameFull, result);
@@ -81,6 +84,21 @@ public class WebStoreDocRowProcessor implements IExcelRowProcessor {
         }
     }
 
+    private void initArticleColumn(Row row) {
+        Cell cell = row.getCell(articleColumnIndex);
+        if (cell == null) {
+            cell = row.createCell(articleColumnIndex);
+        }
+        String val = WorkbookUtil.getCellValueAsString(cell);
+        if (val == null || val.trim().length() == 0) {
+            val = combineCellValues(row, vendorColumnIndex, nameColumnIndex);
+            if (val.trim().length() != 0) {
+                WorkbookUtil.setCellForeground(cell, IndexedColors.YELLOW.getIndex());
+            }
+        }
+        cell.setCellValue(val);
+    }
+
     private String combineCellValues(Row row, int cellIndex1, int cellIndex2) {
         String val1 = WorkbookUtil.getCellValueAsString(row.getCell(cellIndex1));
         String val2 = WorkbookUtil.getCellValueAsString(row.getCell(cellIndex2));
@@ -96,7 +114,7 @@ public class WebStoreDocRowProcessor implements IExcelRowProcessor {
             try {
                 Thread.sleep(requestDelay);
             } catch (InterruptedException e) {
-                //No need to log error.
+                // No need to log error.
             }
             result = engine.findResult("yandex_market", itemName);
         } catch (SourceExecutionException e) {

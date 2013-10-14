@@ -33,7 +33,19 @@ public final class WorkbookUtil {
         cell.setCellValue(uri.toString());
     }
 
+    public static void setCellForeground(Cell cell, short colorIndex) {
+        CellStyle style = cell.getSheet().getWorkbook().createCellStyle();
+
+        style.setFillForegroundColor(colorIndex);
+        style.setFillPattern(CellStyle.SOLID_FOREGROUND);
+        cell.setCellStyle(style);
+        cell.setCellStyle(style);
+    }
+
     public static String getCellValueAsString(Cell cell) {
+        if (cell == null) {
+            return null;
+        }
         String value = null;
         switch (cell.getCellType()) {
         case Cell.CELL_TYPE_BOOLEAN:
